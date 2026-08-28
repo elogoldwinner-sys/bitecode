@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BiteCode — QR Code Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root{
+    --navy:#0d1b2a;
+    --navy-soft:rgba(13,27,42,0.5);
+    --gold:#c9993f;
+    --gold-soft:#e3c07d;
+    --cream:#faf6ef;
+    --line:#e5ddd0;
+    --white:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--navy);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:56px 20px 80px;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:6px;
+  }
+  .brand-mark{
+    width:40px;height:40px;
+    border-radius:11px;
+    background:var(--navy);
+    display:flex;align-items:center;justify-content:center;
+    position:relative;
+    overflow:hidden;
+  }
+  .brand-mark::before{
+    content:"";
+    position:absolute;
+    inset:7px;
+    background:
+      linear-gradient(90deg, var(--gold) 0 3px, transparent 3px 6px) repeat-x,
+      linear-gradient(0deg, var(--gold) 0 3px, transparent 3px 6px) repeat-y;
+    background-size:6px 100%, 100% 6px;
+    opacity:0.9;
+  }
+  .brand-mark span{
+    position:relative;
+    color:var(--gold);
+    font-family:'Playfair Display',Georgia,serif;
+    font-weight:800;
+    font-size:19px;
+    z-index:1;
+  }
+  h1.title{
+    font-family:'Playfair Display',Georgia,serif;
+    font-weight:700;
+    font-size:34px;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  h1.title .accent{ color:var(--gold); }
+  .tagline{
+    color:var(--navy-soft);
+    font-size:14.5px;
+    margin:2px 0 40px;
+    text-align:center;
+  }
+
+  .panel{
+    width:100%;
+    max-width:900px;
+    background:var(--white);
+    border:1px solid var(--line);
+    border-radius:20px;
+    box-shadow:0 1px 3px rgba(13,27,42,0.04), 0 12px 32px -16px rgba(13,27,42,0.10);
+    display:grid;
+    grid-template-columns:1fr 340px;
+    overflow:hidden;
+  }
+  @media (max-width: 760px){
+    .panel{ grid-template-columns:1fr; }
+    .preview-col{ order:-1; border-bottom:1px solid var(--line); border-left:none !important; }
+  }
+
+  .form-col{ padding:36px 40px; }
+  .preview-col{
+    background:linear-gradient(180deg,#0d1b2a 0%, #142c42 100%);
+    border-left:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    padding:36px 28px;
+    gap:20px;
+  }
+
+  .tabs{
+    display:flex;
+    gap:4px;
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:4px;
+    margin-bottom:28px;
+  }
+  .tab{
+    flex:1;
+    text-align:center;
+    padding:9px 10px;
+    border-radius:9px;
+    font-size:13.5px;
+    font-weight:600;
+    color:var(--navy-soft);
+    cursor:pointer;
+    user-select:none;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tab.active{
+    background:var(--navy);
+    color:var(--gold-soft);
+  }
+
+  label{
+    display:block;
+    font-size:12.5px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--navy-soft);
+    margin:0 0 8px;
+  }
+  .field{ margin-bottom:20px; }
+  input[type=text], input[type=url], input[type=email], input[type=tel], textarea{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:14.5px;
+    color:var(--navy);
+    background:var(--cream);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px 14px;
+    outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  textarea{ resize:vertical; min-height:96px; font-family:'Inter',sans-serif; }
+  input:focus, textarea:focus{
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px rgba(201,153,63,0.18);
+  }
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  .field-hint{ font-size:12px; color:var(--navy-soft); margin-top:6px; }
+
+  .section-title{
+    font-family:'Playfair Display',Georgia,serif;
+    font-size:15px;
+    font-weight:700;
+    margin:28px 0 14px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+  }
+  .section-title:first-child{ border-top:none; padding-top:0; margin-top:0; }
+
+  .swatches{ display:flex; gap:10px; flex-wrap:wrap; }
+  .swatch{
+    width:34px;height:34px;
+    border-radius:9px;
+    border:2px solid transparent;
+    cursor:pointer;
+    position:relative;
+  }
+  .swatch.selected{ border-color:var(--navy); }
+  .swatch.selected::after{
+    content:"✓";
+    position:absolute; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:14px; font-weight:700;
+    text-shadow:0 0 2px rgba(0,0,0,.4);
+  }
+
+  .qr-wrap{
+    background:#fff;
+    padding:18px;
+    border-radius:16px;
+    box-shadow:0 20px 45px -20px rgba(0,0,0,0.55);
+  }
+  #qrcode{ line-height:0; }
+  #qrcode img, #qrcode canvas{ display:block; border-radius:4px; }
+
+  .empty-state{
+    width:222px;height:222px;
+    border:1.5px dashed rgba(227,192,125,0.35);
+    border-radius:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    color:rgba(250,246,239,0.45);
+    font-size:13px;
+    padding:24px;
+  }
+
+  .preview-label{
+    color:rgba(250,246,239,0.6);
+    font-size:12.5px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+
+  .download-row{ display:flex; gap:10px; width:100%; max-width:222px; }
+  .btn{
+    flex:1;
+    text-align:center;
+    padding:11px 14px;
+    border-radius:10px;
+    font-size:13.5px;
+    font-weight:600;
+    cursor:pointer;
+    border:none;
+    transition:filter .15s ease, transform .1s ease;
+  }
+  .btn:active{ transform:scale(0.98); }
+  .btn-gold{
+    background:var(--gold);
+    color:var(--navy);
+  }
+  .btn-gold:hover{ filter:brightness(1.08); }
+  .btn-outline{
+    background:transparent;
+    color:var(--gold-soft);
+    border:1px solid rgba(227,192,125,0.4);
+  }
+  .btn-outline:hover{ background:rgba(227,192,125,0.08); }
+  .btn:disabled{ opacity:0.35; cursor:not-allowed; }
+
+  footer{
+    margin-top:36px;
+    font-size:12.5px;
+    color:var(--navy-soft);
+    text-align:center;
+  }
+</style>
+</head>
+<body>
+
+  <div class="brand">
+    <div class="brand-mark"><span>B</span></div>
+  </div>
+  <h1 class="title">Bite<span class="accent">Code</span></h1>
+  <p class="tagline">Turn a link, a message, or a card into a code worth scanning.</p>
+
+  <div class="panel">
+    <div class="form-col">
+
+      <div class="tabs" id="tabs">
+        <div class="tab active" data-type="url">Link</div>
+        <div class="tab" data-type="text">Text</div>
+        <div class="tab" data-type="wifi">Wi‑Fi</div>
+        <div class="tab" data-type="vcard">Contact</div>
+      </div>
+
+      <!-- URL -->
+      <div class="type-panel" data-panel="url">
+        <div class="field">
+          <label for="url-input">Destination URL</label>
+          <input type="url" id="url-input" placeholder="https://example.com" value="https://mahmoudbadawi-lingobite.github.io/app/">
+          <p class="field-hint">Include https:// for the code to open directly in a browser.</p>
+        </div>
+      </div>
+
+      <!-- Text -->
+      <div class="type-panel" data-panel="text" style="display:none">
+        <div class="field">
+          <label for="text-input">Message</label>
+          <textarea id="text-input" placeholder="Anything you'd like to encode as plain text."></textarea>
+        </div>
+      </div>
+
+      <!-- WiFi -->
+      <div class="type-panel" data-panel="wifi" style="display:none">
+        <div class="field">
+          <label for="wifi-ssid">Network name (SSID)</label>
+          <input type="text" id="wifi-ssid" placeholder="Home Network">
+        </div>
+        <div class="field">
+          <label for="wifi-pass">Password</label>
+          <input type="text" id="wifi-pass" placeholder="••••••••">
+        </div>
+        <div class="field">
+          <label for="wifi-enc">Encryption</label>
+          <input type="text" id="wifi-enc" value="WPA" placeholder="WPA">
+          <p class="field-hint">Use WPA, WEP, or leave as nopass for open networks.</p>
+        </div>
+      </div>
+
+      <!-- vCard -->
+      <div class="type-panel" data-panel="vcard" style="display:none">
+        <div class="grid-2">
+          <div class="field">
+            <label for="vc-name">Full name</label>
+            <input type="text" id="vc-name" placeholder="Ada Lovelace">
+          </div>
+          <div class="field">
+            <label for="vc-phone">Phone</label>
+            <input type="tel" id="vc-phone" placeholder="+1 555 010 2000">
+          </div>
+        </div>
+        <div class="field">
+          <label for="vc-email">Email</label>
+          <input type="email" id="vc-email" placeholder="ada@example.com">
+        </div>
+        <div class="field">
+          <label for="vc-org">Organization</label>
+          <input type="text" id="vc-org" placeholder="Analytical Engines Ltd.">
+        </div>
+      </div>
+
+      <div class="section-title">Style</div>
+      <div class="field">
+        <label>Foreground color</label>
+        <div class="swatches" id="fg-swatches">
+          <div class="swatch selected" style="background:#0d1b2a" data-color="#0d1b2a"></div>
+          <div class="swatch" style="background:#c9993f" data-color="#c9993f"></div>
+          <div class="swatch" style="background:#1f4d3a" data-color="#1f4d3a"></div>
+          <div class="swatch" style="background:#7a1f2b" data-color="#7a1f2b"></div>
+          <div class="swatch" style="background:#000000" data-color="#000000"></div>
+        </div>
+      </div>
+      <div class="field">
+        <label for="size-input">Size (px)</label>
+        <input type="text" id="size-input" value="280" style="max-width:120px;">
+      </div>
+
+    </div>
+
+    <div class="preview-col">
+      <div class="preview-label">Preview</div>
+      <div id="qr-empty" class="empty-state">Fill in the details on the left — your code appears here instantly.</div>
+      <div class="qr-wrap" id="qr-wrap" style="display:none">
+        <div id="qrcode"></div>
+      </div>
+      <div class="download-row">
+        <button class="btn btn-gold" id="download-btn" disabled>Download PNG</button>
+        <button class="btn btn-outline" id="copy-btn" disabled>Copy</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>BiteCode — a companion tool from the LingoBite team.</footer>
+
+<script>
+  let currentType = 'url';
+  let qr = null;
+  let debounceTimer = null;
+  let fgColor = '#0d1b2a';
+
+  const tabs = document.querySelectorAll('.tab');
+  const panels = document.querySelectorAll('.type-panel');
+  const qrContainer = document.getElementById('qrcode');
+  const qrWrap = document.getElementById('qr-wrap');
+  const qrEmpty = document.getElementById('qr-empty');
+  const downloadBtn = document.getElementById('download-btn');
+  const copyBtn = document.getElementById('copy-btn');
+  const sizeInput = document.getElementById('size-input');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      currentType = tab.dataset.type;
+      panels.forEach(p => p.style.display = (p.dataset.panel === currentType) ? 'block' : 'none');
+      scheduleRender();
+    });
+  });
+
+  document.querySelectorAll('#fg-swatches .swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+      document.querySelectorAll('#fg-swatches .swatch').forEach(s => s.classList.remove('selected'));
+      sw.classList.add('selected');
+      fgColor = sw.dataset.color;
+      scheduleRender();
+    });
+  });
+
+  document.querySelectorAll('input, textarea').forEach(el => {
+    el.addEventListener('input', scheduleRender);
+  });
+
+  function scheduleRender(){
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(renderQR, 180);
+  }
+
+  function escapeWifi(s){
+    return (s || '').replace(/([\\;,:"])/g, '\\$1');
+  }
+
+  function buildPayload(){
+    if (currentType === 'url'){
+      const v = document.getElementById('url-input').value.trim();
+      return v;
+    }
+    if (currentType === 'text'){
+      return document.getElementById('text-input').value.trim();
+    }
+    if (currentType === 'wifi'){
+      const ssid = document.getElementById('wifi-ssid').value.trim();
+      const pass = document.getElementById('wifi-pass').value.trim();
+      const enc = (document.getElementById('wifi-enc').value.trim() || 'WPA').toUpperCase();
+      if (!ssid) return '';
+      return `WIFI:T:${enc};S:${escapeWifi(ssid)};P:${escapeWifi(pass)};;`;
+    }
+    if (currentType === 'vcard'){
+      const name = document.getElementById('vc-name').value.trim();
+      const phone = document.getElementById('vc-phone').value.trim();
+      const email = document.getElementById('vc-email').value.trim();
+      const org = document.getElementById('vc-org').value.trim();
+      if (!name) return '';
+      let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
+      vcard += `FN:${name}\n`;
+      if (org) vcard += `ORG:${org}\n`;
+      if (phone) vcard += `TEL:${phone}\n`;
+      if (email) vcard += `EMAIL:${email}\n`;
+      vcard += 'END:VCARD';
+      return vcard;
+    }
+    return '';
+  }
+
+  function renderQR(){
+    const payload = buildPayload();
+    let size = parseInt(sizeInput.value, 10);
+    if (!size || size < 80) size = 280;
+    if (size > 1000) size = 1000;
+
+    if (!payload){
+      qrWrap.style.display = 'none';
+      qrEmpty.style.display = 'flex';
+      downloadBtn.disabled = true;
+      copyBtn.disabled = true;
+      return;
+    }
+
+    qrContainer.innerHTML = '';
+    qr = new QRCode(qrContainer, {
+      text: payload,
+      width: size,
+      height: size,
+      colorDark: fgColor,
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    qrEmpty.style.display = 'none';
+    qrWrap.style.display = 'block';
+    downloadBtn.disabled = false;
+    copyBtn.disabled = false;
+  }
+
+  downloadBtn.addEventListener('click', () => {
+    const canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = 'bitecode-qr.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    const canvas = qrContainer.querySelector('canvas');
+    if (!canvas) return;
+    try {
+      canvas.toBlob(async (blob) => {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        const original = copyBtn.textContent;
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => { copyBtn.textContent = original; }, 1400);
+      });
+    } catch (e) {
+      console.error('Copy failed', e);
+    }
+  });
+
+  // Initial render
+  renderQR();
+</script>
+
+</body>
+</html>
