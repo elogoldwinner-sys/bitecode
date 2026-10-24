@@ -1,501 +1,269 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BiteCode — QR Code Generator</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BiteCode — QR Code Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script><script src="config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  :root{
-    --navy:#0d1b2a;
-    --navy-soft:rgba(13,27,42,0.5);
-    --gold:#c9993f;
-    --gold-soft:#e3c07d;
-    --cream:#faf6ef;
-    --line:#e5ddd0;
-    --white:#ffffff;
-  }
-  *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;}
-  body{
-    background:var(--cream);
-    color:var(--navy);
-    font-family:'Inter',system-ui,-apple-system,sans-serif;
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:56px 20px 80px;
-  }
-
-  .brand{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom:6px;
-  }
-  .brand-mark{
-    width:40px;height:40px;
-    border-radius:11px;
-    background:var(--navy);
-    display:flex;align-items:center;justify-content:center;
-    position:relative;
-    overflow:hidden;
-  }
-  .brand-mark::before{
-    content:"";
-    position:absolute;
-    inset:7px;
-    background:
-      linear-gradient(90deg, var(--gold) 0 3px, transparent 3px 6px) repeat-x,
-      linear-gradient(0deg, var(--gold) 0 3px, transparent 3px 6px) repeat-y;
-    background-size:6px 100%, 100% 6px;
-    opacity:0.9;
-  }
-  .brand-mark span{
-    position:relative;
-    color:var(--gold);
-    font-family:'Playfair Display',Georgia,serif;
-    font-weight:800;
-    font-size:19px;
-    z-index:1;
-  }
-  h1.title{
-    font-family:'Playfair Display',Georgia,serif;
-    font-weight:700;
-    font-size:34px;
-    margin:0;
-    letter-spacing:-0.01em;
-  }
-  h1.title .accent{ color:var(--gold); }
-  .tagline{
-    color:var(--navy-soft);
-    font-size:14.5px;
-    margin:2px 0 40px;
-    text-align:center;
-  }
-
-  .panel{
-    width:100%;
-    max-width:900px;
-    background:var(--white);
-    border:1px solid var(--line);
-    border-radius:20px;
-    box-shadow:0 1px 3px rgba(13,27,42,0.04), 0 12px 32px -16px rgba(13,27,42,0.10);
-    display:grid;
-    grid-template-columns:1fr 340px;
-    overflow:hidden;
-  }
-  @media (max-width: 760px){
-    .panel{ grid-template-columns:1fr; }
-    .preview-col{ order:-1; border-bottom:1px solid var(--line); border-left:none !important; }
-  }
-
-  .form-col{ padding:36px 40px; }
-  .preview-col{
-    background:linear-gradient(180deg,#0d1b2a 0%, #142c42 100%);
-    border-left:1px solid var(--line);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    padding:36px 28px;
-    gap:20px;
-  }
-
-  .tabs{
-    display:flex;
-    gap:4px;
-    background:var(--cream);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:4px;
-    margin-bottom:28px;
-  }
-  .tab{
-    flex:1;
-    text-align:center;
-    padding:9px 10px;
-    border-radius:9px;
-    font-size:13.5px;
-    font-weight:600;
-    color:var(--navy-soft);
-    cursor:pointer;
-    user-select:none;
-    transition:background .15s ease, color .15s ease;
-  }
-  .tab.active{
-    background:var(--navy);
-    color:var(--gold-soft);
-  }
-
-  label{
-    display:block;
-    font-size:12.5px;
-    font-weight:600;
-    text-transform:uppercase;
-    letter-spacing:.05em;
-    color:var(--navy-soft);
-    margin:0 0 8px;
-  }
-  .field{ margin-bottom:20px; }
-  input[type=text], input[type=url], input[type=email], input[type=tel], textarea{
-    width:100%;
-    font-family:'Inter',sans-serif;
-    font-size:14.5px;
-    color:var(--navy);
-    background:var(--cream);
-    border:1px solid var(--line);
-    border-radius:10px;
-    padding:12px 14px;
-    outline:none;
-    transition:border-color .15s ease, box-shadow .15s ease;
-  }
-  textarea{ resize:vertical; min-height:96px; font-family:'Inter',sans-serif; }
-  input:focus, textarea:focus{
-    border-color:var(--gold);
-    box-shadow:0 0 0 3px rgba(201,153,63,0.18);
-  }
-  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-
-  .field-hint{ font-size:12px; color:var(--navy-soft); margin-top:6px; }
-
-  .section-title{
-    font-family:'Playfair Display',Georgia,serif;
-    font-size:15px;
-    font-weight:700;
-    margin:28px 0 14px;
-    padding-top:20px;
-    border-top:1px solid var(--line);
-  }
-  .section-title:first-child{ border-top:none; padding-top:0; margin-top:0; }
-
-  .swatches{ display:flex; gap:10px; flex-wrap:wrap; }
-  .swatch{
-    width:34px;height:34px;
-    border-radius:9px;
-    border:2px solid transparent;
-    cursor:pointer;
-    position:relative;
-  }
-  .swatch.selected{ border-color:var(--navy); }
-  .swatch.selected::after{
-    content:"✓";
-    position:absolute; inset:0;
-    display:flex; align-items:center; justify-content:center;
-    color:#fff; font-size:14px; font-weight:700;
-    text-shadow:0 0 2px rgba(0,0,0,.4);
-  }
-
-  .qr-wrap{
-    background:#fff;
-    padding:18px;
-    border-radius:16px;
-    box-shadow:0 20px 45px -20px rgba(0,0,0,0.55);
-  }
-  #qrcode{ line-height:0; }
-  #qrcode img, #qrcode canvas{ display:block; border-radius:4px; }
-
-  .empty-state{
-    width:222px;height:222px;
-    border:1.5px dashed rgba(227,192,125,0.35);
-    border-radius:16px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-    color:rgba(250,246,239,0.45);
-    font-size:13px;
-    padding:24px;
-  }
-
-  .preview-label{
-    color:rgba(250,246,239,0.6);
-    font-size:12.5px;
-    letter-spacing:.04em;
-    text-transform:uppercase;
-    font-weight:600;
-  }
-
-  .download-row{ display:flex; gap:10px; width:100%; max-width:222px; }
-  .btn{
-    flex:1;
-    text-align:center;
-    padding:11px 14px;
-    border-radius:10px;
-    font-size:13.5px;
-    font-weight:600;
-    cursor:pointer;
-    border:none;
-    transition:filter .15s ease, transform .1s ease;
-  }
-  .btn:active{ transform:scale(0.98); }
-  .btn-gold{
-    background:var(--gold);
-    color:var(--navy);
-  }
-  .btn-gold:hover{ filter:brightness(1.08); }
-  .btn-outline{
-    background:transparent;
-    color:var(--gold-soft);
-    border:1px solid rgba(227,192,125,0.4);
-  }
-  .btn-outline:hover{ background:rgba(227,192,125,0.08); }
-  .btn:disabled{ opacity:0.35; cursor:not-allowed; }
-
-  footer{
-    margin-top:36px;
-    font-size:12.5px;
-    color:var(--navy-soft);
-    text-align:center;
-  }
+:root{--bg:#faf6ef;--card:#fff;--ink:#0d1b2a;--mute:rgba(13,27,42,.55);--line:#e5ddd0;--gold:#c9993f;--field:#faf6ef;--stage:#0d1b2a}
+[data-theme=dark]{--bg:#08121c;--card:#0f2234;--ink:#f3ecdd;--mute:rgba(243,236,221,.55);--line:#22394f;--field:#0a1826;--stage:#050d15}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px Inter,system-ui,sans-serif}
+header{display:flex;justify-content:space-between;align-items:center;max-width:1100px;margin:0 auto;padding:22px 20px}
+h1{font:700 28px 'Playfair Display',serif;margin:0}h1 b{color:var(--gold)}
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px 60px;display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+@media(max-width:860px){.wrap{grid-template-columns:1fr}.stage{order:-1;position:static!important}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:6px 20px}
+details{border-bottom:1px solid var(--line);padding:14px 0}details:last-child{border:0}
+summary{font:700 15px 'Playfair Display',serif;cursor:pointer}details>div{margin-top:14px}
+label{display:block;font-size:11.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin:0 0 6px}
+input,select,textarea{width:100%;font:inherit;color:var(--ink);background:var(--field);border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+input[type=color]{padding:2px;height:40px;width:48px}input[type=checkbox],input[type=range]{width:auto;padding:0}input[type=range]{width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:0}
+.f{margin-bottom:14px}.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.row{display:flex;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.chip{border:1px solid var(--line);background:var(--field);color:var(--ink);border-radius:999px;padding:7px 13px;font:600 13px Inter;cursor:pointer}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.stage{position:sticky;top:16px;background:var(--stage);border-radius:16px;padding:22px;display:flex;flex-direction:column;gap:14px}
+#preview{background:repeating-conic-gradient(#e9e9e9 0 25%,#fff 0 50%) 0 0/16px 16px;border-radius:12px;padding:12px;min-height:200px}
+#preview svg{display:block;width:100%;height:auto}.empty{color:#888;text-align:center;padding:70px 10px}
+.btn{border:0;border-radius:9px;padding:11px 14px;font:600 13.5px Inter;cursor:pointer;background:var(--gold);color:#0d1b2a}
+.btn.o{background:transparent;color:#e3c07d;border:1px solid rgba(227,192,125,.4)}.btn.s{background:var(--field);color:var(--ink);border:1px solid var(--line);padding:7px 11px}
+.btn:disabled{opacity:.4;cursor:not-allowed}.hint{font-size:12px;color:var(--mute);margin:4px 0 0}
+.hist{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.hist span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}#warn{color:#e3a33f;font-size:12px}
 </style>
 </head>
 <body>
+<header><h1>Bite<b>Code</b> <small style="font:500 13px Inter;color:var(--mute)">QR Studio</small></h1>
+<button class="btn s" id="theme">🌓 Theme</button></header>
 
-  <div class="brand">
-    <div class="brand-mark"><span>B</span></div>
-  </div>
-  <h1 class="title">Bite<span class="accent">Code</span></h1>
-  <p class="tagline">Turn a link, a message, or a card into a code worth scanning.</p>
+<div class="wrap">
+<div class="card">
+<details open><summary>1 · Content</summary><div>
+ <div class="chips" id="types"></div>
+ <div data-for="url"><div class="f"><label>Destination URL</label><input data-k="url" placeholder="https://example.com"></div></div>
+ <div data-for="text"><div class="f"><label>Text</label><textarea data-k="text" rows="4"></textarea></div></div>
+ <div data-for="email"><div class="f"><label>To</label><input data-k="em_to" type="email"></div><div class="f"><label>Subject</label><input data-k="em_sub"></div><div class="f"><label>Body</label><textarea data-k="em_body" rows="3"></textarea></div></div>
+ <div data-for="sms"><div class="f"><label>Phone (intl. format)</label><input data-k="sms_num" placeholder="+966500000000"></div><div class="f"><label>Message</label><textarea data-k="sms_msg" rows="3"></textarea></div></div>
+ <div data-for="whatsapp"><div class="f"><label>WhatsApp number</label><input data-k="wa_num" placeholder="+966500000000"></div><div class="f"><label>Prefilled message</label><textarea data-k="wa_msg" rows="3"></textarea></div></div>
+ <div data-for="wifi"><div class="g2"><div class="f"><label>SSID</label><input data-k="ssid"></div><div class="f"><label>Password</label><input data-k="wpass"></div></div>
+  <div class="f"><label>Encryption</label><select data-k="enc"><option value="WPA">WPA/WPA2</option><option value="WEP">WEP</option><option value="nopass">Open (none)</option></select></div></div>
+ <div data-for="vcard"><div class="g2"><div class="f"><label>Full name</label><input data-k="vc_name"></div><div class="f"><label>Phone</label><input data-k="vc_phone"></div>
+  <div class="f"><label>Email</label><input data-k="vc_email"></div><div class="f"><label>Website</label><input data-k="vc_web"></div>
+  <div class="f"><label>Organization</label><input data-k="vc_org"></div><div class="f"><label>Title</label><input data-k="vc_title"></div></div></div>
+ <div data-for="dynamic">
+  <div id="dyn-auth"><div class="f"><label>Sign in to create editable codes</label><input id="dyn-email" type="email" placeholder="you@example.com"></div>
+   <button class="btn s" id="dyn-login">Send sign-in link</button></div>
+  <div id="dyn-main" style="display:none">
+   <div class="f"><label>Name (for your list)</label><input data-k="dyn_name"></div>
+   <div class="f"><label>Destination URL (change anytime)</label><input data-k="dyn_dest" placeholder="https://example.com"></div>
+   <div class="row"><button class="btn s" id="dyn-save">Publish / update</button><button class="btn s" id="dyn-new">New code</button><button class="btn s" id="dyn-out">Sign out</button></div>
+   <p class="hint">The printed QR keeps the same short link; editing the destination changes where it goes. Scans are counted.</p>
+   <div id="dyn-list" style="margin-top:10px"></div></div>
+  <p class="hint" id="dyn-msg"></p>
+ </div>
+ <div data-for="store"><div class="f"><label>iOS App Store URL</label><input data-k="st_ios" placeholder="https://apps.apple.com/…"></div><div class="f"><label>Google Play URL</label><input data-k="st_and" placeholder="https://play.google.com/…"></div><div class="f"><label>Fallback (desktop)</label><input data-k="st_fb" placeholder="https://yoursite.com"></div>
+  <p class="hint">Scans route through <code>go.html</code> on this site, which detects the device and redirects.</p></div>
+</div></details>
 
-  <div class="panel">
-    <div class="form-col">
+<details><summary>2 · Style</summary><div>
+ <div class="g2"><div class="f"><label>Dots</label><select data-k="dots"><option value="square">Square</option><option value="dots">Dots</option><option value="rounded">Rounded squares</option><option value="extra-rounded">Smooth curves</option><option value="classy">Classy</option><option value="classy-rounded">Classy rounded</option></select></div>
+ <div class="f"><label>Eye frame</label><select data-k="eyeO"><option value="square">Square</option><option value="extra-rounded">Rounded</option><option value="dot">Circle</option></select></div>
+ <div class="f"><label>Eye center</label><select data-k="eyeI"><option value="square">Square</option><option value="dot">Dot</option></select></div>
+ <div class="f"><label>Fill</label><select data-k="grad"><option value="none">Solid</option><option value="linear">Linear gradient</option><option value="radial">Radial gradient</option></select></div></div>
+ <div class="g2"><div class="f"><label>Color 1</label><div class="row"><input type="color" data-k="c1"><input data-k="c1" data-hex maxlength="7"></div></div>
+ <div class="f"><label>Color 2 (gradient)</label><div class="row"><input type="color" data-k="c2"><input data-k="c2" data-hex maxlength="7"></div></div>
+ <div class="f"><label>Background</label><div class="row"><input type="color" data-k="bg"><input data-k="bg" data-hex maxlength="7"></div></div>
+ <div class="f"><label>Gradient angle</label><input type="range" min="0" max="360" data-k="angle"></div></div>
+ <label class="row"><input type="checkbox" data-k="transp"> Transparent background</label>
+ <p id="warn"></p>
+</div></details>
 
-      <div class="tabs" id="tabs">
-        <div class="tab active" data-type="url">Link</div>
-        <div class="tab" data-type="text">Text</div>
-        <div class="tab" data-type="wifi">Wi‑Fi</div>
-        <div class="tab" data-type="vcard">Contact</div>
-      </div>
+<details><summary>3 · Logo</summary><div>
+ <div class="f"><label>Upload logo (auto center-cropped)</label><input type="file" id="logo" accept="image/*"></div>
+ <div class="f"><label>Logo size</label><input type="range" min="0.15" max="0.4" step="0.01" data-k="logoSize"></div>
+ <button class="btn s" id="rmlogo">Remove logo</button>
+ <p class="hint">With a logo, error correction is forced to H (30%) so the code stays scannable.</p>
+ <div class="f" style="margin-top:12px"><label>Error correction (no logo)</label><select data-k="ecc"><option>L</option><option>M</option><option>Q</option><option>H</option></select></div>
+</div></details>
 
-      <!-- URL -->
-      <div class="type-panel" data-panel="url">
-        <div class="field">
-          <label for="url-input">Destination URL</label>
-          <input type="url" id="url-input" placeholder="https://example.com" value="https://mahmoudbadawi-lingobite.github.io/app/">
-          <p class="field-hint">Include https:// for the code to open directly in a browser.</p>
-        </div>
-      </div>
+<details><summary>4 · Frame & CTA</summary><div>
+ <div class="g2"><div class="f"><label>Frame</label><select data-k="frame"><option value="none">None</option><option value="bottom">Label bottom</option><option value="top">Label top</option></select></div>
+ <div class="f"><label>CTA text</label><input data-k="cta" maxlength="24" list="ctas"><datalist id="ctas"><option>SCAN ME<option>VIEW MENU<option>JOIN US<option>CONNECT TO WI-FI<option>GET THE APP</datalist></div>
+ <div class="f"><label>Frame color</label><div class="row"><input type="color" data-k="fcol"><input data-k="fcol" data-hex maxlength="7"></div></div></div>
+</div></details>
 
-      <!-- Text -->
-      <div class="type-panel" data-panel="text" style="display:none">
-        <div class="field">
-          <label for="text-input">Message</label>
-          <textarea id="text-input" placeholder="Anything you'd like to encode as plain text."></textarea>
-        </div>
-      </div>
+<details><summary>5 · Export</summary><div>
+ <div class="g2"><div class="f"><label>Format</label><select data-k="fmt"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="svg">SVG (vector)</option><option value="pdf">PDF</option></select></div>
+ <div class="f"><label>Print width (cm)</label><input type="number" min="1" max="100" step="0.5" data-k="cm"></div>
+ <div class="f"><label>DPI</label><select data-k="dpi"><option>72</option><option>150</option><option selected>300</option><option>600</option></select></div>
+ <div class="f"><label>Output</label><p class="hint" id="px" style="margin:10px 0 0"></p></div></div>
+</div></details>
+</div>
 
-      <!-- WiFi -->
-      <div class="type-panel" data-panel="wifi" style="display:none">
-        <div class="field">
-          <label for="wifi-ssid">Network name (SSID)</label>
-          <input type="text" id="wifi-ssid" placeholder="Home Network">
-        </div>
-        <div class="field">
-          <label for="wifi-pass">Password</label>
-          <input type="text" id="wifi-pass" placeholder="••••••••">
-        </div>
-        <div class="field">
-          <label for="wifi-enc">Encryption</label>
-          <input type="text" id="wifi-enc" value="WPA" placeholder="WPA">
-          <p class="field-hint">Use WPA, WEP, or leave as nopass for open networks.</p>
-        </div>
-      </div>
-
-      <!-- vCard -->
-      <div class="type-panel" data-panel="vcard" style="display:none">
-        <div class="grid-2">
-          <div class="field">
-            <label for="vc-name">Full name</label>
-            <input type="text" id="vc-name" placeholder="Ada Lovelace">
-          </div>
-          <div class="field">
-            <label for="vc-phone">Phone</label>
-            <input type="tel" id="vc-phone" placeholder="+1 555 010 2000">
-          </div>
-        </div>
-        <div class="field">
-          <label for="vc-email">Email</label>
-          <input type="email" id="vc-email" placeholder="ada@example.com">
-        </div>
-        <div class="field">
-          <label for="vc-org">Organization</label>
-          <input type="text" id="vc-org" placeholder="Analytical Engines Ltd.">
-        </div>
-      </div>
-
-      <div class="section-title">Style</div>
-      <div class="field">
-        <label>Foreground color</label>
-        <div class="swatches" id="fg-swatches">
-          <div class="swatch selected" style="background:#0d1b2a" data-color="#0d1b2a"></div>
-          <div class="swatch" style="background:#c9993f" data-color="#c9993f"></div>
-          <div class="swatch" style="background:#1f4d3a" data-color="#1f4d3a"></div>
-          <div class="swatch" style="background:#7a1f2b" data-color="#7a1f2b"></div>
-          <div class="swatch" style="background:#000000" data-color="#000000"></div>
-        </div>
-      </div>
-      <div class="field">
-        <label for="size-input">Size (px)</label>
-        <input type="text" id="size-input" value="280" style="max-width:120px;">
-      </div>
-
-    </div>
-
-    <div class="preview-col">
-      <div class="preview-label">Preview</div>
-      <div id="qr-empty" class="empty-state">Fill in the details on the left — your code appears here instantly.</div>
-      <div class="qr-wrap" id="qr-wrap" style="display:none">
-        <div id="qrcode"></div>
-      </div>
-      <div class="download-row">
-        <button class="btn btn-gold" id="download-btn" disabled>Download PNG</button>
-        <button class="btn btn-outline" id="copy-btn" disabled>Copy</button>
-      </div>
-    </div>
-  </div>
-
-  <footer>BiteCode — a companion tool from the LingoBite team.</footer>
+<aside class="stage">
+ <div id="preview"></div>
+ <div class="row"><button class="btn" id="dl" style="flex:1">Download</button><button class="btn o" id="save">Save</button><button class="btn o" id="copy">Copy</button></div>
+ <div style="color:#e3c07d;font-size:12px;font-weight:600;letter-spacing:.05em">SAVED DESIGNS</div>
+ <div id="hist" style="color:#faf6ef"></div>
+</aside>
+</div>
 
 <script>
-  let currentType = 'url';
-  let qr = null;
-  let debounceTimer = null;
-  let fgColor = '#0d1b2a';
+const $=s=>document.querySelector(s), HKEY='bitecode.history.v1';
+const DEF={type:'url',url:'https://code.lingobite.org',text:'',em_to:'',em_sub:'',em_body:'',sms_num:'',sms_msg:'',wa_num:'',wa_msg:'',ssid:'',wpass:'',enc:'WPA',
+ vc_name:'',vc_phone:'',vc_email:'',vc_web:'',vc_org:'',vc_title:'',st_ios:'',st_and:'',st_fb:'',dyn_id:'',dyn_name:'',dyn_dest:'',
+ dots:'rounded',eyeO:'extra-rounded',eyeI:'dot',grad:'none',c1:'#0d1b2a',c2:'#c9993f',bg:'#ffffff',angle:45,transp:false,
+ logo:'',logoSize:0.28,ecc:'M',frame:'bottom',cta:'SCAN ME',fcol:'#0d1b2a',fmt:'png',cm:5,dpi:300};
+let S={...DEF}, cur=null, seq=0, timer;
 
-  const tabs = document.querySelectorAll('.tab');
-  const panels = document.querySelectorAll('.type-panel');
-  const qrContainer = document.getElementById('qrcode');
-  const qrWrap = document.getElementById('qr-wrap');
-  const qrEmpty = document.getElementById('qr-empty');
-  const downloadBtn = document.getElementById('download-btn');
-  const copyBtn = document.getElementById('copy-btn');
-  const sizeInput = document.getElementById('size-input');
+/* ---------- payload builders ---------- */
+const enc=encodeURIComponent, esc=s=>(s||'').replace(/([\\;,:"])/g,'\\$1'), vesc=s=>(s||'').replace(/([\\;,])/g,'\\$1').replace(/\n/g,'\\n');
+const TYPES={url:'Link',text:'Text',email:'Email',sms:'SMS',whatsapp:'WhatsApp',wifi:'Wi‑Fi',vcard:'Contact',store:'App Store',dynamic:'Dynamic'};
+function payload(){
+ const s=S, t=s.type, v=x=>(x||'').trim();
+ if(t==='url'){const u=v(s.url);return u&&!/^[a-z][a-z0-9+.-]*:/i.test(u)?'https://'+u:u}
+ if(t==='text')return v(s.text);
+ if(t==='email')return v(s.em_to)?`mailto:${v(s.em_to)}?subject=${enc(s.em_sub)}&body=${enc(s.em_body)}`:'';
+ if(t==='sms')return v(s.sms_num)?`SMSTO:${v(s.sms_num)}:${s.sms_msg}`:'';
+ if(t==='whatsapp'){const n=v(s.wa_num).replace(/\D/g,'');return n?`https://wa.me/${n}${s.wa_msg?'?text='+enc(s.wa_msg):''}`:''}
+ if(t==='wifi')return v(s.ssid)?`WIFI:T:${s.enc};S:${esc(s.ssid)};P:${s.enc==='nopass'?'':esc(s.wpass)};;`:'';
+ if(t==='vcard'){ if(!v(s.vc_name))return '';
+  const p=s.vc_name.trim().split(/\s+/),last=p.length>1?p.pop():'';
+  return ['BEGIN:VCARD','VERSION:3.0',`N:${vesc(last)};${vesc(p.join(' '))};;;`,`FN:${vesc(s.vc_name)}`,
+   s.vc_org&&`ORG:${vesc(s.vc_org)}`,s.vc_title&&`TITLE:${vesc(s.vc_title)}`,s.vc_phone&&`TEL;TYPE=CELL:${vesc(s.vc_phone)}`,
+   s.vc_email&&`EMAIL:${vesc(s.vc_email)}`,s.vc_web&&`URL:${vesc(s.vc_web)}`,'END:VCARD'].filter(Boolean).join('\r\n')}
+ if(t==='dynamic')return s.dyn_id?location.origin+location.pathname.replace(/[^/]*$/,'')+'r.html?c='+s.dyn_id:'';
+ if(t==='store'){ if(!(v(s.st_ios)||v(s.st_and)||v(s.st_fb)))return '';
+  const base=location.origin+location.pathname.replace(/[^/]*$/,'')+'go.html';
+  return `${base}#i=${enc(v(s.st_ios))}&a=${enc(v(s.st_and))}&f=${enc(v(s.st_fb))}`}
+ return '';
+}
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      currentType = tab.dataset.type;
-      panels.forEach(p => p.style.display = (p.dataset.panel === currentType) ? 'block' : 'none');
-      scheduleRender();
-    });
-  });
+/* ---------- QR + frame composition (SVG is the single source of truth) ---------- */
+function qrOptions(){
+ const fill=S.grad==='none'?{color:S.c1}:{gradient:{type:S.grad,rotation:S.angle*Math.PI/180,colorStops:[{offset:0,color:S.c1},{offset:1,color:S.c2}]}};
+ return {width:1000,height:1000,type:'svg',data:payload(),margin:0,image:S.logo||undefined,
+  qrOptions:{errorCorrectionLevel:S.logo?'H':S.ecc},dotsOptions:{type:S.dots,...fill},
+  cornersSquareOptions:{type:S.eyeO,...fill},cornersDotOptions:{type:S.eyeI,...fill},
+  backgroundOptions:{color:S.transp?'transparent':S.bg},
+  imageOptions:{imageSize:S.logoSize,margin:8,hideBackgroundDots:true,crossOrigin:'anonymous'}};
+}
+const lum=h=>{const n=parseInt(h.slice(1),16),f=c=>{c/=255;return c<=.03928?c/12.92:((c+.055)/1.055)**2.4};return .2126*f(n>>16)+.7152*f(n>>8&255)+.0722*f(n&255)};
+const contrast=(a,b)=>{const[x,y]=[lum(a),lum(b)].sort((m,n)=>n-m);return(x+.05)/(y+.05)};
+const xml=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-  document.querySelectorAll('#fg-swatches .swatch').forEach(sw => {
-    sw.addEventListener('click', () => {
-      document.querySelectorAll('#fg-swatches .swatch').forEach(s => s.classList.remove('selected'));
-      sw.classList.add('selected');
-      fgColor = sw.dataset.color;
-      scheduleRender();
-    });
-  });
+async function buildSVG(){
+ const raw=await new QRCodeStyling(qrOptions()).getRawData('svg'), doc=new DOMParser().parseFromString(await raw.text(),'image/svg+xml'), q=doc.documentElement;
+ if(!q.getAttribute('viewBox'))q.setAttribute('viewBox',`0 0 ${q.getAttribute('width')} ${q.getAttribute('height')}`);
+ const Q=1000,B=150; q.setAttribute('width',Q);q.setAttribute('height',Q);
+ if(S.frame==='none'){return{svg:new XMLSerializer().serializeToString(q),w:Q,h:Q}}
+ const top=S.frame==='top', W=Q+100, H=Q+75+B, qy=top?B+25:50; q.setAttribute('x',50);q.setAttribute('y',qy);
+ const panel=S.transp?'#ffffff':S.bg, txt=lum(S.fcol)>.5?'#0d1b2a':'#ffffff', ty=(top?B/2:Q+75+B/2)+22;
+ const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}">
+<rect width="${W}" height="${H}" rx="60" fill="${S.fcol}"/><rect x="25" y="${top?B:25}" width="${W-50}" height="${Q+50}" rx="36" fill="${panel}"/>
+${new XMLSerializer().serializeToString(q)}
+<text x="${W/2}" y="${ty}" text-anchor="middle" font-family="Inter,Arial,Helvetica,sans-serif" font-weight="800" font-size="64" letter-spacing="4" fill="${txt}">${xml(S.cta||'')}</text></svg>`;
+ return{svg,w:W,h:H};
+}
 
-  document.querySelectorAll('input, textarea').forEach(el => {
-    el.addEventListener('input', scheduleRender);
-  });
+function rasterize({svg,w,h},px,mime){
+ return new Promise((ok,no)=>{const img=new Image();
+  img.onload=()=>{const c=document.createElement('canvas');c.width=px;c.height=Math.round(px*h/w);const g=c.getContext('2d');
+   if(mime==='image/jpeg'){g.fillStyle='#fff';g.fillRect(0,0,c.width,c.height)}
+   g.drawImage(img,0,0,c.width,c.height);c.toBlob(b=>b?ok(b):no(new Error('canvas too large')),mime,.95)};
+  img.onerror=no;img.src='data:image/svg+xml;charset=utf-8,'+enc(svg)});
+}
 
-  function scheduleRender(){
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(renderQR, 180);
-  }
+/* ---------- render (debounced, race-safe) ---------- */
+function schedule(){clearTimeout(timer);timer=setTimeout(render,150)}
+async function render(){
+ const my=++seq, p=payload(), prev=$('#preview');
+ $('#px').textContent=pxSize()+' px · '+S.cm+' cm @ '+S.dpi+' DPI';
+ const warn=contrast(S.c1,S.transp?'#ffffff':S.bg);
+ $('#warn').textContent=warn<4?'⚠ Low contrast — this may not scan reliably.':'';
+ ['#dl','#save','#copy'].forEach(i=>$(i).disabled=!p);
+ if(!p){cur=null;prev.innerHTML='<div class="empty">Fill in the details — your code appears here.</div>';return}
+ try{const r=await buildSVG(); if(my!==seq)return; cur=r; prev.innerHTML=r.svg;}
+ catch(e){console.error(e);prev.innerHTML='<div class="empty">Could not render (content too long?).</div>'}
+}
 
-  function escapeWifi(s){
-    return (s || '').replace(/([\\;,:"])/g, '\\$1');
-  }
+/* ---------- export ---------- */
+const pxSize=()=>Math.max(100,Math.min(6000,Math.round(S.cm/2.54*S.dpi)));
+function save(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+$('#dl').onclick=async()=>{ if(!cur)return; const f=S.fmt, px=pxSize(), name='bitecode-'+S.type;
+ try{
+  if(f==='svg')return save(new Blob([cur.svg],{type:'image/svg+xml'}),name+'.svg');
+  if(f==='jpeg')return save(await rasterize(cur,px,'image/jpeg'),name+'.jpg');
+  const png=await rasterize(cur,px,'image/png');
+  if(f==='png')return save(png,name+'.png');
+  const url=await new Promise(r=>{const fr=new FileReader();fr.onload=()=>r(fr.result);fr.readAsDataURL(png)});
+  const wmm=S.cm*10,hmm=wmm*cur.h/cur.w,pdf=new jspdf.jsPDF({unit:'mm',format:[wmm,hmm],orientation:hmm>=wmm?'p':'l'});
+  pdf.addImage(url,'PNG',0,0,wmm,hmm);pdf.save(name+'.pdf');
+ }catch(e){alert('Export failed: '+e.message+'. Try a smaller size.')}};
+$('#copy').onclick=async()=>{ if(!cur)return;
+ try{await navigator.clipboard.write([new ClipboardItem({'image/png':rasterize(cur,1000,'image/png')})]);$('#copy').textContent='Copied!';setTimeout(()=>$('#copy').textContent='Copy',1300)}catch(e){alert('Copy not supported in this browser.')}};
 
-  function buildPayload(){
-    if (currentType === 'url'){
-      const v = document.getElementById('url-input').value.trim();
-      return v;
-    }
-    if (currentType === 'text'){
-      return document.getElementById('text-input').value.trim();
-    }
-    if (currentType === 'wifi'){
-      const ssid = document.getElementById('wifi-ssid').value.trim();
-      const pass = document.getElementById('wifi-pass').value.trim();
-      const enc = (document.getElementById('wifi-enc').value.trim() || 'WPA').toUpperCase();
-      if (!ssid) return '';
-      return `WIFI:T:${enc};S:${escapeWifi(ssid)};P:${escapeWifi(pass)};;`;
-    }
-    if (currentType === 'vcard'){
-      const name = document.getElementById('vc-name').value.trim();
-      const phone = document.getElementById('vc-phone').value.trim();
-      const email = document.getElementById('vc-email').value.trim();
-      const org = document.getElementById('vc-org').value.trim();
-      if (!name) return '';
-      let vcard = 'BEGIN:VCARD\nVERSION:3.0\n';
-      vcard += `FN:${name}\n`;
-      if (org) vcard += `ORG:${org}\n`;
-      if (phone) vcard += `TEL:${phone}\n`;
-      if (email) vcard += `EMAIL:${email}\n`;
-      vcard += 'END:VCARD';
-      return vcard;
-    }
-    return '';
-  }
+/* ---------- logo: center-crop to square ---------- */
+$('#logo').onchange=e=>{const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+ fr.onload=()=>{const img=new Image();img.onload=()=>{const m=Math.min(img.width,img.height),c=document.createElement('canvas');c.width=c.height=256;
+  c.getContext('2d').drawImage(img,(img.width-m)/2,(img.height-m)/2,m,m,0,0,256,256);S.logo=c.toDataURL('image/png');schedule()};img.src=fr.result};fr.readAsDataURL(f)};
+$('#rmlogo').onclick=()=>{S.logo='';$('#logo').value='';schedule()};
 
-  function renderQR(){
-    const payload = buildPayload();
-    let size = parseInt(sizeInput.value, 10);
-    if (!size || size < 80) size = 280;
-    if (size > 1000) size = 1000;
+/* ---------- history / templates (localStorage) ---------- */
+const loadH=()=>{try{return JSON.parse(localStorage.getItem(HKEY))||[]}catch{return[]}};
+function drawH(){const h=loadH(),el=$('#hist');el.innerHTML=h.length?'':'<span style="opacity:.5;font-size:12px">Nothing saved yet.</span>';
+ h.forEach(it=>{const d=document.createElement('div');d.className='hist';
+  d.innerHTML=`<span>${xml(TYPES[it.s.type])} · ${xml(it.label)}</span>`;
+  [['Edit',()=>{S={...DEF,...it.s};sync();schedule()}],['✕',()=>{try{localStorage.setItem(HKEY,JSON.stringify(loadH().filter(x=>x.id!==it.id)))}catch{}drawH()}]]
+   .forEach(([t,fn])=>{const b=document.createElement('button');b.className='btn o';b.style.padding='5px 9px';b.textContent=t;b.onclick=fn;d.append(b)});el.append(d)})}
+$('#save').onclick=()=>{const p=payload();if(!p)return;let h=loadH();h.unshift({id:Date.now(),label:p.replace(/\s+/g,' ').slice(0,32),s:{...S}});
+ while(h.length>15)h.pop();
+ for(;;){try{localStorage.setItem(HKEY,JSON.stringify(h));break}catch{if(h.length<=1){alert('Storage full.');break}h.pop()}}drawH()};
 
-    if (!payload){
-      qrWrap.style.display = 'none';
-      qrEmpty.style.display = 'flex';
-      downloadBtn.disabled = true;
-      copyBtn.disabled = true;
-      return;
-    }
-
-    qrContainer.innerHTML = '';
-    qr = new QRCode(qrContainer, {
-      text: payload,
-      width: size,
-      height: size,
-      colorDark: fgColor,
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-
-    qrEmpty.style.display = 'none';
-    qrWrap.style.display = 'block';
-    downloadBtn.disabled = false;
-    copyBtn.disabled = false;
-  }
-
-  downloadBtn.addEventListener('click', () => {
-    const canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
-    const link = document.createElement('a');
-    link.download = 'bitecode-qr.png';
-    link.href = canvas.toDataURL('image/png');
-    link.click();
-  });
-
-  copyBtn.addEventListener('click', async () => {
-    const canvas = qrContainer.querySelector('canvas');
-    if (!canvas) return;
-    try {
-      canvas.toBlob(async (blob) => {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-        const original = copyBtn.textContent;
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => { copyBtn.textContent = original; }, 1400);
-      });
-    } catch (e) {
-      console.error('Copy failed', e);
-    }
-  });
-
-  // Initial render
-  renderQR();
+/* ---------- binding ---------- */
+function showType(){document.querySelectorAll('[data-for]').forEach(d=>d.style.display=d.dataset.for===S.type?'':'none');
+ document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.t===S.type))}
+function sync(){document.querySelectorAll('[data-k]').forEach(el=>{const v=S[el.dataset.k];el.type==='checkbox'?el.checked=!!v:el.value=v});showType()}
+document.querySelectorAll('[data-k]').forEach(el=>{const h=()=>{const k=el.dataset.k;let v=el.type==='checkbox'?el.checked:el.type==='range'?+el.value:el.value;
+ if(el.hasAttribute('data-hex')&&!/^#[0-9a-f]{6}$/i.test(v))return;
+ if(['cm','dpi'].includes(k))v=+v||DEF[k];
+ S[k]=v;document.querySelectorAll(`[data-k="${k}"]`).forEach(o=>{if(o!==el&&o.type!=='checkbox')o.value=v});schedule()};
+ el.addEventListener('input',h);el.addEventListener('change',h)});
+Object.entries(TYPES).forEach(([k,l])=>{const b=document.createElement('button');b.className='chip';b.dataset.t=k;b.textContent=l;
+ b.onclick=()=>{S.type=k;showType();schedule()};$('#types').append(b)});
+$('#theme').onclick=()=>{const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('bitecode.theme',t)}catch{}};
+try{document.documentElement.dataset.theme=localStorage.getItem('bitecode.theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch{}
+/* ---------- dynamic codes (Supabase) ---------- */
+const sb=(window.BC&&BC.url&&!BC.url.includes('YOUR-PROJECT')&&window.supabase)?supabase.createClient(BC.url,BC.key):null;
+const rid=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>'abcdefghjkmnpqrstuvwxyz23456789'[b%31]).join('');
+const dmsg=t=>$('#dyn-msg').textContent=t||'';
+const normUrl=u=>{u=(u||'').trim();return u&&!/^[a-z][a-z0-9+.-]*:/i.test(u)?'https://'+u:u};
+DEF.dyn_id=S.dyn_id=rid();
+async function dynList(){ if(!sb)return; const {data,error}=await sb.rpc('my_codes'); if(error)return dmsg(error.message);
+ const el=$('#dyn-list');el.innerHTML='';
+ (data||[]).forEach(c=>{const d=document.createElement('div');d.className='hist';
+  d.innerHTML=`<span>${xml(c.name||c.id)} · ${c.scans} scans<br><small style="color:var(--mute)">${xml(c.dest)}</small></span>`;
+  [['Edit',()=>{S.dyn_id=c.id;S.dyn_name=c.name||'';S.dyn_dest=c.dest;sync();schedule()}],
+   ['✕',async()=>{if(confirm('Delete this code? Printed copies will stop working.')){await sb.from('codes').delete().eq('id',c.id);dynList()}}]]
+   .forEach(([t,fn])=>{const b=document.createElement('button');b.className='btn s';b.textContent=t;b.onclick=fn;d.append(b)});el.append(d)})}
+function dynAuth(session){$('#dyn-auth').style.display=session?'none':'';$('#dyn-main').style.display=session?'':'none';if(session)dynList()}
+if(!sb){dmsg('Dynamic codes need setup: add your Supabase URL and anon key in config.js.')}
+else{
+ sb.auth.getSession().then(({data})=>dynAuth(data.session));
+ sb.auth.onAuthStateChange((_,s)=>dynAuth(s));
+ $('#dyn-login').onclick=async()=>{const email=$('#dyn-email').value.trim();if(!email)return;
+  const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});dmsg(error?error.message:'Check your email for the sign-in link.')};
+ $('#dyn-out').onclick=()=>sb.auth.signOut();
+ $('#dyn-new').onclick=()=>{S.dyn_id=rid();S.dyn_name='';S.dyn_dest='';sync();schedule()};
+ $('#dyn-save').onclick=async()=>{const dest=normUrl(S.dyn_dest);if(!/^https?:\/\/.+\..+/i.test(dest))return dmsg('Enter a valid destination URL.');
+  const {error}=await sb.from('codes').upsert({id:S.dyn_id,dest,name:S.dyn_name||null});
+  dmsg(error?error.message:'Published. This QR now redirects to your destination.');if(!error)dynList()};
+}
+sync();drawH();render();
 </script>
-
 </body>
 </html>
